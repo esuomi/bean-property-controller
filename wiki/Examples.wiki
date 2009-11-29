@@ -73,5 +73,5 @@ assert bpc.typeOf("accountBalance").equals(double.class);
 ==Get value from bean within a bean==
 {{{
 BeanPropertyController bpc = BeanPropertyController.of(NestedBean.class);
-bpc.mutate("nested.value", "I'm a property inside a bean which is inside the 
-}}}NestedBean!");
+bpc.mutate("nested.value", "I'm a property inside a bean which is inside the NestedBean!");
+}}}
