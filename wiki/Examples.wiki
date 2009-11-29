@@ -1,0 +1,70 @@
+#summary Usage examples
+#labels Featured
+
+=Usage Examples=
+
+All the examples below use the following bean (unless otherwise stated):
+{{{
+public class TraditionalBean {
+    
+    private String name;
+    private int age;
+    private double accountBalance;
+    
+    public double getAccountBalance() { return accountBalance; }
+    public void setAccountBalance(double accountBalance) { this.accountBalance = accountBalance; }
+
+    public int getAge() { return age; }
+    public void setAge(int age) { this.age = age; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    @Override
+    public int hashCode() { /* hashCode generation code */ return hashCode; }
+    @Override
+    public boolean equals(Object obj) { /*equality checking code*/ return equal; }
+}
+}}}
+==Mutate known field of object==
+{{{
+TraditionalBean bean = new TraditionalBean();
+BeanPropertyController bpc = BeanPropertyController.of(bean);
+bpc.mutate("name", "Jane");
+assert bpc.access("name").equals("Jane");
+}}}
+==Mutate known field of class==
+{{{
+BeanPropertyController bpc = BeanPropertyController.of(TraditionalBean.class);
+bpc.mutate("name", "Jane");
+assert bpc.access("name").equals("Jane");
+}}}
+==Iterate through all properties of given bean==
+{{{
+BeanPropertyController bpc = BeanPropertyController.of(new TraditionalBean());
+
+for (String propertyName : bpc.getPropertyNames()) {
+	// do something with the property
+}
+}}}
+==Use BPC as an object factory==
+{{{
+List<TraditionalBean> beans = new ArrayList<TraditionalBean>();
+for (int i=0; i<10; i++) {
+	bpc.mutate("age", i);
+	beans.add(bpc.getObject(TraditionalBean.class));
+	bpc.recycle();
+}
+assert beans.size() == 10;
+
+for (int i=0; i<beans.size(); i++) {
+	assert beans.get(i).getAge() == i;
+}
+}}}
+==Check various aspects of the properties through convenience methods==
+{{{
+BeanPropertyController bpc = BeanPropertyController.of(TraditionalBean.class);
+assert !bpc.isArray("age");
+assert bpc.isReadOnly("name"); // means there's no mutator available, .mutate() has no effect
+assert bpc.typeOf("accountBalance").equals(double.class);
+}}}
