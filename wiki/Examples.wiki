@@ -50,6 +50,7 @@ for (String propertyName : bpc.getPropertyNames()) {
 ==Use BPC as an object factory==
 {{{
 List<TraditionalBean> beans = new ArrayList<TraditionalBean>();
+BeanPropertyController bpc = BeanPropertyController.of(TraditionalBean.class);
 for (int i=0; i<10; i++) {
 	bpc.mutate("age", i);
 	beans.add(bpc.getObject(TraditionalBean.class));
