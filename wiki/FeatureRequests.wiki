@@ -1,3 +1,0 @@
-#summary Feature requests for BeanPropertyController
-
-Add any feature requests for BPC you may have here.
