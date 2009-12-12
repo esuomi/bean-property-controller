@@ -16,19 +16,16 @@
 package reflection.bpc;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+
+import reflection.bpc.ClassInstantiator.InstantiationPolicy;
 
 /**
  * Reflection based class for semi-automatic mutation and access of Java Beans.
@@ -61,27 +58,6 @@ public class BeanPropertyController implements Serializable {
      * to be accessed, if 3 then the child's children are allowed and so on and so forth.
      */
     public static final int DEFAULT_STEPS = -1;
-
-    /**
-     * Policy to use when instantiating a bean from Class instance. These policies aren't inclusive
-     * and won't cascade to any other policy. 
-     */
-    public static enum InstantiationPolicy {
-        /**
-         * Default behaviour, instantiate only if default no arguments constructor is available. 
-         */
-        NO_ARGS,
-        /**
-         * Instantiate using the shortest possible constructor with nice values;
-         * - "" for Strings
-         * - 0 for numbers
-         * - false for booleans
-         * - zero length arrays for any array property
-         * 
-         *  TODO: Beans within beans?
-         */
-        NICE
-    }
     
     /**
      * Determines how deep into the object this class should look into when extracting properties.
@@ -114,7 +90,7 @@ public class BeanPropertyController implements Serializable {
     private final ExtractionDepth extractionDepth;
     private final int steps;
     private transient PropertyExtractor extractor;
-    private InstantiationPolicy instantiationPolicy; //TODO: Finalize?
+    private ClassInstantiator instantiationPolicy; //TODO: Finalize?
 
     private BeanPropertyController(Object object, ExtractionDepth extractionDepth, int stepping) {
         setObject(object);
@@ -158,59 +134,10 @@ public class BeanPropertyController implements Serializable {
         return of(c, extractionDepth, DEFAULT_STEPS, policy);
     }    
     public static BeanPropertyController of(Class<?> c, ExtractionDepth extractionDepth, int steps, InstantiationPolicy policy) {
-        BeanPropertyController bpc = new BeanPropertyController(instantiate(c, policy), extractionDepth, steps);
-        bpc.instantiationPolicy = policy;
+        ClassInstantiator instantiator = new ClassInstantiator(c, policy);
+        BeanPropertyController bpc = new BeanPropertyController(instantiator.instantiate(), extractionDepth, steps);
+        bpc.instantiationPolicy = instantiator;
         return bpc;
-    }
-
-    private static Object instantiate(Class<?> c, InstantiationPolicy policy) {
-        List<Throwable> exceptions = new ArrayList<Throwable>();
-        Object instantiated = null;
-        if (policy.compareTo(InstantiationPolicy.NO_ARGS) == 0) {
-            try {
-                instantiated = c.newInstance();
-            } catch (InstantiationException e) {
-                exceptions.add(e);
-            } catch (IllegalAccessException e) {
-                exceptions.add(e);
-            }
-        } else if (instantiated == null && policy.compareTo(InstantiationPolicy.NICE) == 0) {
-            List<Constructor<?>> constructors = new ArrayList<Constructor<?>>();
-            for (Constructor<?> constructor : c.getConstructors()) {
-                constructors.add(constructor);
-            }
-            Collections.sort(constructors, ConstructorComparator.PARAMETER_COUNT);
-            Constructor<?> constructor = constructors.get(0);
-            try {
-                instantiated = constructor.newInstance(niceParamsFor(constructor));
-            } catch (InstantiationException e) {
-                exceptions.add(e);
-            } catch (IllegalAccessException e) {
-                exceptions.add(e);
-            } catch (IllegalArgumentException e) {
-                exceptions.add(e);
-            } catch (InvocationTargetException e) {
-                exceptions.add(e);
-            }
-        }
-
-        if (instantiated != null) {
-            return instantiated;    
-        } else {
-            throw new BeanInstantiationException("Failed to instantiate given class :: " + exceptions.toString(),
-                                                 exceptions);
-        }
-        
-    }
-
-    private static Object[] niceParamsFor(Constructor<?> constructor) {
-        Object[] niceParameters = new Object[constructor.getParameterTypes().length];
-        
-        for (int i = 0; i < constructor.getParameterTypes().length; i++) {
-            niceParameters[i] = NiceValueProvider.INSTANCE.getNiceValueFor(constructor.getParameterTypes()[i]);
-        }
-        
-        return niceParameters;
     }
     
     public Object getObject() {
@@ -384,7 +311,7 @@ public class BeanPropertyController implements Serializable {
     }
 
     public void recycle() {
-        Object newObject = instantiate(getObject().getClass(), instantiationPolicy);
+        Object newObject = instantiationPolicy.instantiate();
         
         resetPropertyObjects(newObject);
         

@@ -27,12 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import junit.framework.TestCase;
-import reflection.bpc.BeanInstantiationException;
-import reflection.bpc.BeanPropertyController;
-import reflection.bpc.NonMatchingAccessorAndMutatorException;
-import reflection.bpc.NonexistentPropertyException;
 import reflection.bpc.BeanPropertyController.ExtractionDepth;
-import reflection.bpc.BeanPropertyController.InstantiationPolicy;
+import reflection.bpc.ClassInstantiator.InstantiationPolicy;
 import reflection.bpc.testbeans.ArrayBean;
 import reflection.bpc.testbeans.BooleanClass;
 import reflection.bpc.testbeans.BrokenBean;
@@ -130,7 +126,7 @@ public class BeanPropertyControllerTestCase extends TestCase {
         try {
             bpc.access("doughnuts");
         } catch (NonexistentPropertyException e) {
-            assertEquals("Property 'doughnuts' doesn't exist for the specified class reflection.bpa2.testbeans.SomeClass", e.getMessage());
+            assertEquals("Property 'doughnuts' doesn't exist for the specified class reflection.bpc.testbeans.SomeClass", e.getMessage());
         }
     }
     
@@ -217,7 +213,7 @@ public class BeanPropertyControllerTestCase extends TestCase {
             bpc.access("bean.value");
             fail("Should've thrown NonexistentPropertyException");
         } catch (NonexistentPropertyException e) {
-            assertEquals("Property 'bean.value' doesn't exist for the specified class reflection.bpa2.testbeans.RecursionBean",
+            assertEquals("Property 'bean.value' doesn't exist for the specified class reflection.bpc.testbeans.RecursionBean",
                          e.getMessage());
         }
     }
@@ -311,7 +307,7 @@ public class BeanPropertyControllerTestCase extends TestCase {
             bpc = BeanPropertyController.of(MultipleConstructorsBean.class);
             fail("Should've thrown Exception!");
         } catch (BeanInstantiationException e) {
-            assertEquals("Failed to instantiate given class :: [java.lang.InstantiationException: reflection.bpa2.testbeans.MultipleConstructorsBean]", e.getMessage());
+            assertEquals("Failed to instantiate given class :: [java.lang.InstantiationException: reflection.bpc.testbeans.MultipleConstructorsBean]", e.getMessage());
             assertEquals(1, e.getExceptions().size());
         }
     }
