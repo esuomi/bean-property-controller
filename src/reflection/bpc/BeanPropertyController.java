@@ -90,7 +90,7 @@ public class BeanPropertyController implements Serializable {
     private final ExtractionDepth extractionDepth;
     private final int steps;
     private transient PropertyExtractor extractor;
-    private ClassInstantiator instantiationPolicy; //TODO: Finalize?
+    private ClassInstantiator instantiatior; //TODO: Finalize?
 
     private BeanPropertyController(Object object, ExtractionDepth extractionDepth, int stepping) {
         setObject(object);
@@ -136,7 +136,7 @@ public class BeanPropertyController implements Serializable {
     public static BeanPropertyController of(Class<?> c, ExtractionDepth extractionDepth, int steps, InstantiationPolicy policy) {
         ClassInstantiator instantiator = new ClassInstantiator(c, policy);
         BeanPropertyController bpc = new BeanPropertyController(instantiator.instantiate(), extractionDepth, steps);
-        bpc.instantiationPolicy = instantiator;
+        bpc.instantiatior = instantiator;
         return bpc;
     }
     
@@ -311,7 +311,7 @@ public class BeanPropertyController implements Serializable {
     }
 
     public void recycle() {
-        Object newObject = instantiationPolicy.instantiate();
+        Object newObject = instantiatior.instantiate();
         
         resetPropertyObjects(newObject);
         
