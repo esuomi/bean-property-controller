@@ -1,11 +1,10 @@
-package reflection.bpc;
+package reflection.bpc.instantiation;
 
 import java.io.Serializable;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import reflection.bpc.BeanInstantiationException;
 
 public class ClassInstantiator implements Serializable {
     
@@ -39,35 +38,13 @@ public class ClassInstantiator implements Serializable {
         NICE
     }
     
-    protected Object instantiate() {
+    public Object instantiate() {
         List<Throwable> exceptions = new ArrayList<Throwable>();
         Object instantiated = null;
         if (policy.compareTo(InstantiationPolicy.NO_ARGS) == 0) {
-            try {
-                instantiated = c.newInstance();
-            } catch (InstantiationException e) {
-                exceptions.add(e);
-            } catch (IllegalAccessException e) {
-                exceptions.add(e);
-            }
+            instantiated = new DefaultInstantiator().instantiate(c);
         } else if (instantiated == null && policy.compareTo(InstantiationPolicy.NICE) == 0) {
-            List<Constructor<?>> constructors = new ArrayList<Constructor<?>>();
-            for (Constructor<?> constructor : c.getConstructors()) {
-                constructors.add(constructor);
-            }
-            Collections.sort(constructors, ConstructorComparator.PARAMETER_COUNT);
-            Constructor<?> constructor = constructors.get(0);
-            try {
-                instantiated = constructor.newInstance(niceParamsFor(constructor));
-            } catch (InstantiationException e) {
-                exceptions.add(e);
-            } catch (IllegalAccessException e) {
-                exceptions.add(e);
-            } catch (IllegalArgumentException e) {
-                exceptions.add(e);
-            } catch (InvocationTargetException e) {
-                exceptions.add(e);
-            }
+            instantiated = new ConstructorInstantiator().instantiate(c);
         }
 
         if (instantiated != null) {
@@ -77,15 +54,5 @@ public class ClassInstantiator implements Serializable {
                                                  exceptions);
         }
         
-    }
-    
-    private static Object[] niceParamsFor(Constructor<?> constructor) {
-        Object[] niceParameters = new Object[constructor.getParameterTypes().length];
-        
-        for (int i = 0; i < constructor.getParameterTypes().length; i++) {
-            niceParameters[i] = NiceValueProvider.INSTANCE.getNiceValueFor(constructor.getParameterTypes()[i]);
-        }
-        
-        return niceParameters;
     }
 }

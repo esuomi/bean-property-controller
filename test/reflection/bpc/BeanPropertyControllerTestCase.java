@@ -28,7 +28,7 @@ import java.util.Map;
 
 import junit.framework.TestCase;
 import reflection.bpc.BeanPropertyController.ExtractionDepth;
-import reflection.bpc.ClassInstantiator.InstantiationPolicy;
+import reflection.bpc.instantiation.ClassInstantiator.InstantiationPolicy;
 import reflection.bpc.testbeans.ArrayBean;
 import reflection.bpc.testbeans.BooleanClass;
 import reflection.bpc.testbeans.BrokenBean;
@@ -307,7 +307,7 @@ public class BeanPropertyControllerTestCase extends TestCase {
             bpc = BeanPropertyController.of(MultipleConstructorsBean.class);
             fail("Should've thrown Exception!");
         } catch (BeanInstantiationException e) {
-            assertEquals("Failed to instantiate given class :: [java.lang.InstantiationException: reflection.bpc.testbeans.MultipleConstructorsBean]", e.getMessage());
+            assertEquals("Couldn't instantiate given class reflection.bpc.testbeans.MultipleConstructorsBean", e.getMessage());
             assertEquals(1, e.getExceptions().size());
         }
     }
@@ -340,6 +340,17 @@ public class BeanPropertyControllerTestCase extends TestCase {
         
         assertEquals(original, bpc.getObject());
     }
+    
+    /* TODO: Implement this.
+    public void testCanAccessSpecificObjectInArrayByIndex() throws Exception {
+        double[] doubles = {1.0, 2.0, 3.0};
+        arrayBean.setValues(doubles);
+        bpc = BeanPropertyController.of(arrayBean);
+        assertEquals(doubles[0], bpc.access("values[0]"));
+        assertEquals(doubles[1], bpc.access("values[1]"));
+        assertEquals(doubles[2], bpc.access("values[2]"));
+    }
+    */
     
     private BeanPropertyController deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
         ByteArrayInputStream is = new ByteArrayInputStream(bytes);

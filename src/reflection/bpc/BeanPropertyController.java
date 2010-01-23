@@ -25,7 +25,9 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import reflection.bpc.ClassInstantiator.InstantiationPolicy;
+import reflection.bpc.extraction.PropertyExtractor;
+import reflection.bpc.instantiation.ClassInstantiator;
+import reflection.bpc.instantiation.ClassInstantiator.InstantiationPolicy;
 
 /**
  * Reflection based class for semi-automatic mutation and access of Java Beans.
@@ -47,17 +49,6 @@ import reflection.bpc.ClassInstantiator.InstantiationPolicy;
  * @author Esko
  */
 public class BeanPropertyController implements Serializable {
-    
-    private static final long serialVersionUID = 1L;
-    
-    /**
-     * Default stepping depth for property extraction, -1 means infinite depth stepping.
-     * <p>
-     * What this means is that if steps are 1, only the given class (or its instance) is allowed to be
-     * accessed, if the stepping is 2, only the given class (or its instance) and its' children is allowed
-     * to be accessed, if 3 then the child's children are allowed and so on and so forth.
-     */
-    public static final int DEFAULT_STEPS = -1;
     
     /**
      * Determines how deep into the object this class should look into when extracting properties.
@@ -83,7 +74,18 @@ public class BeanPropertyController implements Serializable {
          */
         QUESTIMATE
     }
-
+    
+    private static final long serialVersionUID = 1L;
+    
+    /**
+     * Default stepping depth for property extraction, -1 means infinite depth stepping.
+     * <p>
+     * What this means is that if steps are 1, only the given class (or its instance) is allowed to be
+     * accessed, if the stepping is 2, only the given class (or its instance) and its' children is allowed
+     * to be accessed, if 3 then the child's children are allowed and so on and so forth.
+     */
+    public static final int DEFAULT_STEPS = -1;
+    
     private transient Object object;
     private Serializable serializableObject;
     private final transient Map<String, IBeanProperty> properties;
@@ -97,7 +99,7 @@ public class BeanPropertyController implements Serializable {
         this.extractionDepth = extractionDepth;
         this.steps = stepping;
         properties = new ConcurrentHashMap<String, IBeanProperty>();
-        extractor = new PropertyExtractor(getObject(), extractionDepth);
+        extractor = new PropertyExtractor(extractionDepth);
     }
     
     public static BeanPropertyController of(Object object) {
@@ -295,17 +297,17 @@ public class BeanPropertyController implements Serializable {
         for (String pathPart : propertyPath) {
             String trimmedPathPart = pathPart.trim();
             if (trimmedPathPart.length() > 0) {
-                lastBeanProperty = getExtractor(extracted).extractProperty(trimmedPathPart, extracted);
+                lastBeanProperty = getExtractor().extractProperty(trimmedPathPart, extracted);
                 extracted = lastBeanProperty.getValue();
             }            
         }
         return lastBeanProperty;
     }
     
-    private PropertyExtractor getExtractor(Object root) {
+    private PropertyExtractor getExtractor() {
         // TODO: Figure out if this lazyload is redundant.
         if (extractor == null) {
-            extractor = new PropertyExtractor(root, extractionDepth);
+            extractor = new PropertyExtractor(extractionDepth);
         }
         return extractor;
     }
