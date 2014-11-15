@@ -152,3 +152,7 @@ assert bpc.typeOf("accountBalance").equals(double.class);
 BeanPropertyController bpc = BeanPropertyController.of(NestedBean.class);
 bpc.mutate("nested.value", "I'm a property inside a bean which is inside the NestedBean!");
 ```
+
+## License
+
+As of 15 November 2014 this utility is licensed under [MIT](http://en.wikipedia.org/wiki/MIT_License). Previous version(s) available at [Google Code](https://code.google.com/p/bean-property-controller/) is licensed under ASF 2.0
