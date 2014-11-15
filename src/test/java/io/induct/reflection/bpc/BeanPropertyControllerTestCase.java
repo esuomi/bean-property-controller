@@ -134,7 +134,7 @@ public class BeanPropertyControllerTestCase extends TestCase {
         try {
             bpc.access("doughnuts");
         } catch (NonexistentPropertyException e) {
-            assertEquals("Property 'doughnuts' doesn't exist for the specified class reflection.bpc.testbeans.SomeClass", e.getMessage());
+            assertEquals("Property 'doughnuts' doesn't exist for the specified class io.induct.reflection.bpc.testbeans.SomeClass", e.getMessage());
         }
     }
     
@@ -174,11 +174,11 @@ public class BeanPropertyControllerTestCase extends TestCase {
     
     public void testCanListAllAvailablePropertiesOfAnyTypeForGivenObject() throws Exception {
         bpc = BeanPropertyController.of(questimationBean, ExtractionDepth.QUESTIMATE);
-        String[] propertyNames = removeUnitTestingLibraryProxyProperties(bpc.getPropertyNames());
+        List<String> propertyNames = Arrays.asList(removeUnitTestingLibraryProxyProperties(bpc.getPropertyNames()));
         
-        assertEquals(2, propertyNames.length);
-        assertEquals("onlyGetter", propertyNames[0]);
-        assertEquals("onlySetter", propertyNames[1]);
+        assertEquals(2, propertyNames.size());
+        assertTrue("onlyGetter not found", propertyNames.contains("onlyGetter"));
+        assertTrue("onlySetter not found", propertyNames.contains("onlySetter"));
     }
     
     public void testCanScanPropertiesFromRecursionBean() throws Exception {
@@ -221,7 +221,7 @@ public class BeanPropertyControllerTestCase extends TestCase {
             bpc.access("bean.value");
             fail("Should've thrown NonexistentPropertyException");
         } catch (NonexistentPropertyException e) {
-            assertEquals("Property 'bean.value' doesn't exist for the specified class reflection.bpc.testbeans.RecursionBean",
+            assertEquals("Property 'bean.value' doesn't exist for the specified class io.induct.reflection.bpc.testbeans.RecursionBean",
                          e.getMessage());
         }
     }
@@ -315,7 +315,7 @@ public class BeanPropertyControllerTestCase extends TestCase {
             bpc = BeanPropertyController.of(MultipleConstructorsBean.class);
             fail("Should've thrown Exception!");
         } catch (BeanInstantiationException e) {
-            assertEquals("Couldn't instantiate given class reflection.bpc.testbeans.MultipleConstructorsBean", e.getMessage());
+            assertEquals("Couldn't instantiate given class io.induct.reflection.bpc.testbeans.MultipleConstructorsBean", e.getMessage());
             assertEquals(1, e.getExceptions().size());
         }
     }
